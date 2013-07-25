@@ -2,6 +2,7 @@ package stun
 
 import (
 	"errors"
+	"fmt"
 	"net"
 )
 
@@ -99,4 +100,16 @@ func (x *XORMappedAddress) UnPack(b []byte) error {
 		}
 	}
 	return nil
+}
+
+func (x *XORMappedAddress) String() string {
+	var family string
+	switch x.Family {
+	case 1:
+		family = "IPv4"
+	case 2:
+		family = "IPv6"
+	}
+
+	return fmt.Sprintf("XOR Mapped Address: %s %s:%d", family, x.IP, x.Port)
 }

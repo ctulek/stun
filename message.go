@@ -3,9 +3,11 @@
 package stun
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -31,11 +33,11 @@ const (
 )
 
 var (
-	BINDING_REQUEST  = toUint16([]byte{0x00, 0x01})
-	BINDING_RESPONSE = toUint16([]byte{0x01, 0x01})
+	BINDING_REQUEST    = toUint16([]byte{0x00, 0x01})
+	BINDING_RESPONSE   = toUint16([]byte{0x01, 0x01})
 	BINDING_INDICATION = toUint16([]byte{0x00, 0x11})
-	BINDING_ERROR = toUint16([]byte{0x01, 0x11})
-	RFC5389_COOKIE   = toUint32([]byte{0x21, 0x12, 0xA4, 0x42})
+	BINDING_ERROR      = toUint16([]byte{0x01, 0x11})
+	RFC5389_COOKIE     = toUint32([]byte{0x21, 0x12, 0xA4, 0x42})
 )
 
 type Message struct {
@@ -58,6 +60,7 @@ type Attribute interface {
 	Length() uint16
 	Pack([]byte) error
 	UnPack([]byte) error
+	String() string
 }
 
 var (
@@ -76,11 +79,52 @@ var (
 	ATTR_TYPE_FINGERPRINT      = toUint16([]byte{0x80, 0x28})
 )
 
-func (s *Header) IsValid() bool {
+func (m *Message) String() string {
+	var buffer bytes.Buffer
+	buffer.WriteString(
+		fmt.Sprintf("Header:\n%s\n", m.Header.String()))
+	buffer.WriteString(
+		fmt.Sprintf("RTO: %d Max Retry: %d", m.RTO, m.MaxRetry))
+	if len(m.UnknownAttributes) > 0 {
+		buffer.WriteString(
+			fmt.Sprintf("Unknown Attributes: %v",
+				m.UnknownAttributes))
+	}
+	buffer.WriteString("\n\n")
+
+	for _, value := range m.Attributes {
+		buffer.WriteString(fmt.Sprintf("%s\n", value.String()))
+	}
+	return buffer.String()
+}
+
+func (h *Header) String() string {
+	var buffer bytes.Buffer
+	var typeString string
+	switch h.Type {
+	case BINDING_REQUEST:
+		typeString = "Binding Request"
+	case BINDING_RESPONSE:
+		typeString = "Binding Response"
+	case BINDING_INDICATION:
+		typeString = "Binding Indication"
+	case BINDING_ERROR:
+		typeString = "Binding Error"
+	}
+
+	buffer.WriteString(fmt.Sprintf("Type   : %s\n", typeString))
+	buffer.WriteString(fmt.Sprintf("Len    : %d\n", h.Length))
+	buffer.WriteString(fmt.Sprintf("Cookie : %x\n", h.Cookie))
+	buffer.WriteString(fmt.Sprintf("Txn. ID: %x\n", h.TransactionId))
+
+	return buffer.String()
+}
+
+func (h *Header) IsValid() bool {
 	var bits1 [2]byte
-	putUint16(bits1[:], s.Type)
+	putUint16(bits1[:], h.Type)
 	var bits2 [2]byte
-	putUint16(bits2[:], s.Length)
+	putUint16(bits2[:], h.Length)
 	return (bits1[0]&0xC0) == 0 && (bits2[1]&0x03) == 0
 }
 
@@ -126,7 +170,7 @@ func (msg *Message) UnPack(b []byte) (err error) {
 		if pos+4 > len(b) {
 			return errors.New("Buffer is too short")
 		}
-		for pos < len(b) && pos < int(msg.Header.Length) + 20 {
+		for pos < len(b) && pos < int(msg.Header.Length)+20 {
 			l := int(toUint16(b[pos+2 : pos+4]))
 			if pos+l+4 > len(b) {
 				return errors.New("Buffer is too short")

@@ -2,6 +2,7 @@ package stun
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Nonce struct {
@@ -36,4 +37,8 @@ func (n *Nonce) UnPack(b []byte) error {
 	b = b[4:]
 	n.Value = string(b[0:l])
 	return nil
+}
+
+func (n *Nonce) String() string {
+	return fmt.Sprintf("Nonce: %s", n.Value)
 }

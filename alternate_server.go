@@ -2,6 +2,7 @@ package stun
 
 import (
 	"errors"
+	"fmt"
 	"net"
 )
 
@@ -72,4 +73,16 @@ func (a *AlternateServer) UnPack(b []byte) error {
 		}
 	}
 	return nil
+}
+
+func (a *AlternateServer) String() string {
+	var family string
+	switch a.Family {
+	case 1:
+		family = "IPv4"
+	case 2:
+		family = "IPv6"
+	}
+
+	return fmt.Sprintf("Alternate Server: %s %s:%d", family, a.IP, a.Port)
 }

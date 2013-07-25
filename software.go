@@ -2,6 +2,7 @@ package stun
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Software struct {
@@ -36,4 +37,8 @@ func (s *Software) UnPack(b []byte) error {
 	b = b[4:]
 	s.Value = string(b[0:l])
 	return nil
+}
+
+func (s *Software) String() string {
+	return fmt.Sprintf("Software: %s", s.Value)
 }

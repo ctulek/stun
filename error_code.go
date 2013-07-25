@@ -2,6 +2,7 @@ package stun
 
 import (
 	"errors"
+	"fmt"
 )
 
 const (
@@ -49,4 +50,8 @@ func (e *ErrorCode) UnPack(b []byte) error {
 	e.Code = class + number
 	e.Phrase = string(b[4 : 4+strlen])
 	return nil
+}
+
+func (e *ErrorCode) String() string {
+	return fmt.Sprintf("Error Code: %d - %s\n", e.Code, e.Phrase)
 }

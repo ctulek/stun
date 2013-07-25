@@ -2,6 +2,7 @@ package stun
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Fingerprint struct {
@@ -35,4 +36,8 @@ func (f *Fingerprint) UnPack(b []byte) error {
 	}
 	f.Value = string(b[0:32])
 	return nil
+}
+
+func (f *Fingerprint) String() string {
+	return fmt.Sprintf("Finger Print: %s", f.Value)
 }

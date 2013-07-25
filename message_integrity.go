@@ -2,6 +2,7 @@ package stun
 
 import (
 	"errors"
+	"fmt"
 )
 
 type MessageIntegrity struct {
@@ -35,4 +36,8 @@ func (u *MessageIntegrity) UnPack(b []byte) error {
 	}
 	u.Value = string(b[0:20])
 	return nil
+}
+
+func (m *MessageIntegrity) String() string {
+	return fmt.Sprintf("Message Integrity: %s", m.Value)
 }

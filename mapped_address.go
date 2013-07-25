@@ -2,6 +2,7 @@ package stun
 
 import (
 	"errors"
+	"fmt"
 	"net"
 )
 
@@ -72,4 +73,16 @@ func (m *MappedAddress) UnPack(b []byte) error {
 		}
 	}
 	return nil
+}
+
+func (m *MappedAddress) String() string {
+	var family string
+	switch m.Family {
+	case 1:
+		family = "IPv4"
+	case 2:
+		family = "IPv6"
+	}
+
+	return fmt.Sprintf("Mapped Address: %s %s:%d", family, m.IP, m.Port)
 }

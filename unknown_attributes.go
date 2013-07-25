@@ -39,3 +39,7 @@ func (u *UnknownAttributes) UnPack(b []byte) error {
 	}
 	return nil
 }
+
+func (u *UnknownAttributes) String() string {
+	return "Not implemented"
+}

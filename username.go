@@ -2,6 +2,7 @@ package stun
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Username struct {
@@ -36,4 +37,8 @@ func (u *Username) UnPack(b []byte) error {
 	b = b[4:]
 	u.Value = string(b[0:l])
 	return nil
+}
+
+func (u *Username) String() string {
+	return fmt.Sprintf("Username: %s", u.Value)
 }

@@ -2,6 +2,7 @@ package stun
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Realm struct {
@@ -36,4 +37,8 @@ func (r *Realm) UnPack(b []byte) error {
 	b = b[4:]
 	r.Value = string(b[0:l])
 	return nil
+}
+
+func (r *Realm) String() string {
+	return fmt.Sprintf("Realm: %s", r.Value)
 }
