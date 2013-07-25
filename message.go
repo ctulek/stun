@@ -33,6 +33,8 @@ const (
 var (
 	BINDING_REQUEST  = toUint16([]byte{0x00, 0x01})
 	BINDING_RESPONSE = toUint16([]byte{0x01, 0x01})
+	BINDING_INDICATION = toUint16([]byte{0x00, 0x11})
+	BINDING_ERROR = toUint16([]byte{0x01, 0x11})
 	RFC5389_COOKIE   = toUint32([]byte{0x21, 0x12, 0xA4, 0x42})
 )
 
@@ -124,7 +126,7 @@ func (msg *Message) UnPack(b []byte) (err error) {
 		if pos+4 > len(b) {
 			return errors.New("Buffer is too short")
 		}
-		for pos < len(b) {
+		for pos < len(b) && pos < int(msg.Header.Length) + 20 {
 			l := int(toUint16(b[pos+2 : pos+4]))
 			if pos+l+4 > len(b) {
 				return errors.New("Buffer is too short")
