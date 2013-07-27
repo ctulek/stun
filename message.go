@@ -60,7 +60,6 @@ type Attribute interface {
 	Length() uint16
 	Pack([]byte) error
 	UnPack([]byte) error
-	String() string
 }
 
 var (
@@ -93,7 +92,7 @@ func (m *Message) String() string {
 	buffer.WriteString("\n\n")
 
 	for _, value := range m.Attributes {
-		buffer.WriteString(fmt.Sprintf("%s\n", value.String()))
+		buffer.WriteString(fmt.Sprintf("%v\n", value))
 	}
 	return buffer.String()
 }
