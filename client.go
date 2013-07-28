@@ -5,49 +5,52 @@ TODO:
 package stun
 
 import (
-	"net"
+	"errors"
 	"fmt"
-    "log"
+	"net"
 )
 
-func Call(host string, port int) {
-	addr, err := net.ResolveUDPAddr("udp4", fmt.Sprintf("%s:%d", host, port))
-	if err != nil {
-		log.Fatal("Resolving failed", err)
-	}
-	conn, err := net.DialUDP("udp", nil, addr)
-	if err != nil {
-		log.Fatal("UDP call failed", err)
-	}
-	response, err := SendBindingRequest(conn, addr)
-	if err != nil {
-		log.Fatal("Request failed", err)
-	}
-	if response.Header.IsValid() == false {
-		log.Fatal(response)
-	}
-    for _, attr := range response.Attributes {
-        if mapped, ok := attr.(*MappedAddress); ok {
-            var family string
-            switch mapped.Family {
-            case 1:
-                family = "IPv4"
-            case 2:
-                family = "IPv6"
-            }
-
-            fmt.Printf("%s %s %d\n", family, mapped.IP, mapped.Port)
-        }
-    }
+type ClientOpts struct {
+	Software string
 }
 
-func SendBindingRequest(conn *net.UDPConn, address *net.UDPAddr) (*Message, error) {
+// Calls the stun server given with host, port and options.
+//
+// If the call is successful it returns caller's IP and Port information
+func Call(host string, port int, options ClientOpts) (addr net.UDPAddr, err error) {
+	remoteAddr, err := net.ResolveUDPAddr("udp4", fmt.Sprintf("%s:%d", host, port))
+	if err != nil {
+		return
+	}
+	conn, err := net.DialUDP("udp", nil, remoteAddr)
+	if err != nil {
+		return
+	}
+	response, err := SendBindingRequest(conn, remoteAddr, options)
+	if err != nil {
+		return
+	}
+	if response.Header.IsValid() == false {
+		err = errors.New("Server returned an invalid response")
+		return
+	}
+	for _, attr := range response.Attributes {
+		if mapped, ok := attr.(*MappedAddress); ok {
+			addr = net.UDPAddr{IP: mapped.IP, Port: int(mapped.Port)}
+			return
+		}
+	}
+	err = errors.New("Can't find Mapped Address attribute")
+	return
+}
+
+func SendBindingRequest(conn *net.UDPConn, address *net.UDPAddr, options ClientOpts) (*Message, error) {
 	m, err := NewBindingRequest()
 	if err != nil {
 		return nil, err
 	}
 	software := new(Software)
-	software.Value = "Go Client"
+	software.Value = options.Software
 	m.AddAttribute(software)
 	response, err := SendMessage(conn, address, m)
 	return response, err
