@@ -35,7 +35,11 @@ func Call(host string, port int, options ClientOpts) (addr net.UDPAddr, err erro
 		return
 	}
 	for _, attr := range response.Attributes {
-		if mapped, ok := attr.(*MappedAddress); ok {
+		switch mapped := attr.(type) {
+		case *XORMappedAddress:
+			addr = net.UDPAddr{IP: mapped.IP, Port: int(mapped.Port)}
+			return
+		case *MappedAddress:
 			addr = net.UDPAddr{IP: mapped.IP, Port: int(mapped.Port)}
 			return
 		}
